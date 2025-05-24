@@ -1,124 +1,92 @@
 import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Button from '@/components/ui/Button';
+import Button from '../ui/Button';
 
-interface HeroSectionProps {}
+gsap.registerPlugin(ScrollTrigger);
 
-const HeroSection: React.FC<HeroSectionProps> = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const subtextRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const nftImageRef = useRef<HTMLImageElement>(null);
+const HeroSection: React.FC = () => {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (heroRef.current && titleRef.current && subtitleRef.current && buttonRef.current) {
+      // Hero section initial fade in
+      gsap.fromTo(heroRef.current,
+        { opacity: 0 },
+        { opacity: 1, duration: 1.5, ease: 'power3.out', delay: 1.8 } // Starts after preloader and header
+      );
 
-    // Split text for individual letter animation
-    const words = headlineRef.current?.innerText.split(' ') || [];
-    headlineRef.current!.innerText = ''; // Clear original text
-    const spans = words.map(word => {
-      const wordSpan = document.createElement('span');
-      wordSpan.style.whiteSpace = 'nowrap'; // Keep words together
-      word.split('').forEach(char => {
-        const charSpan = document.createElement('span');
-        charSpan.innerText = char === ' ' ? '\u00A0' : char; // Handle spaces
-        charSpan.className = 'inline-block opacity-0 transform translate-y-full'; // Initial state for animation
-        wordSpan.appendChild(charSpan);
+      // Text animation (letter by letter for dramatic effect)
+      const titleChars = titleRef.current.innerText.split('');
+      titleRef.current.innerHTML = titleChars.map(char => `<span class="inline-block relative opacity-0 translate-y-full">${char === ' ' ? '&nbsp;' : char}</span>`).join('');
+
+      gsap.to(titleRef.current.children, {
+        y: 0,
+        opacity: 1,
+        stagger: 0.05,
+        duration: 0.8,
+        ease: 'power3.out',
+        delay: 2 // After initial hero fade
       });
-      headlineRef.current?.appendChild(wordSpan);
-      headlineRef.current?.appendChild(document.createTextNode('\u00A0')); // Add space between words
-      return Array.from(wordSpan.children) as HTMLElement[];
-    }).flat(); // Flatten array of arrays of chars
 
-    // Main Hero Section Timeline
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      // Subtitle animation
+      gsap.fromTo(subtitleRef.current,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 2.5 }
+      );
 
-    // Initial fade in for the whole section (after preloader)
-    tl.fromTo(sectionRef.current, { opacity: 0 }, { opacity: 1, duration: 1.5, delay: 1.8 });
+      // Button animation
+      gsap.fromTo(buttonRef.current,
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 2.8 }
+      );
 
-    // Letter-by-letter reveal for headline
-    tl.to(spans, {
-      y: 0,
-      opacity: 1,
-      duration: 0.8,
-      stagger: 0.03,
-    }, "<0.5"); // Start slightly after section fade in
+      // Parallax effect on scroll
+      gsap.to(titleRef.current, {
+        yPercent: -15,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
 
-    // Fade in and slide up subtext and CTA
-    tl.fromTo(subtextRef.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7 }, "<0.2");
-    tl.fromTo(ctaRef.current, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.7 }, "<0.2");
-
-    // Parallax for NFT image
-    tl.fromTo(nftImageRef.current,
-      { y: 50, scale: 0.8, opacity: 0 },
-      { y: 0, scale: 1, opacity: 1, duration: 1.5, ease: 'power3.out' },
-      "<0.3" // Start slightly after CTA
-    );
-
-    // Scroll-triggered parallax for headline and image
-    gsap.to(headlineRef.current, {
-      yPercent: -20, // Moves up 20%
-      ease: "none",
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      }
-    });
-
-    gsap.to(nftImageRef.current, {
-      yPercent: 30, // Moves down 30% relative to its height
-      ease: "none",
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      }
-    });
-
-    return () => {
-      tl.kill();
-      ScrollTrigger.getAll().forEach(st => st.kill());
-    };
+      gsap.to(subtitleRef.current, {
+        yPercent: -5,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: heroRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+    }
   }, []);
 
   return (
-    <section id="home" ref={sectionRef} className="full-height-section bg-dark-deep relative overflow-hidden text-center flex flex-col justify-center items-center px-4">
-      {/* Background elements with subtle WebGL-like feel (using CSS) */}
-      <div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-purple to-accent-cyan via-dark-deep blur-3xl opacity-50"></div>
-        <div className="absolute inset-0 bg-[url('/noise.webp')] opacity-5 mix-blend-overlay"></div> {/* Subtle noise texture */}
-        {/* Placeholder for complex WebGL/Canvas background, if implemented */}
-      </div>
-
-      <div className="relative z-10 max-width-wrapper">
-        <h1
-          ref={headlineRef}
-          className="brutalist-heading text-heading-xl text-light-contrast leading-tight mb-8 drop-shadow-lg"
-        >
-          Unleash the <br className="hidden sm:block"/> Nebula Apes
+    <section ref={heroRef} className="relative h-screen flex flex-col items-start justify-center p-6 md:p-12 lg:p-24 bg-gradient-to-br from-deep-charcoal to-dark-gray overflow-hidden">
+      <div className="relative z-10 max-w-6xl w-full">
+        <h1 ref={titleRef} className="text-off-white text-d-10xl lg:text-d-11xl font-space-grotesk font-extrabold leading-[0.9] mb-8 uppercase text-gradient-purple-cyan drop-shadow-lg will-change-transform">
+          Crafting Digital Excellence.
         </h1>
-        <p ref={subtextRef} className="font-dmsans text-hero-text-sm text-gray-400 mb-12 max-w-2xl mx-auto opacity-0">
-          Discover a groundbreaking collection of 10,000 unique digital entities, merging cosmic artistry with cutting-edge blockchain technology. Join the evolution.
+        <p ref={subtitleRef} className="text-off-white text-d-2xl md:text-d-4xl font-dm-sans max-w-4xl mb-12 leading-relaxed opacity-0 will-change-transform">
+          Where cutting-edge design meets unparalleled development to create extraordinary experiences.
         </p>
-        <div ref={ctaRef} className="opacity-0 flex justify-center gap-6">
-          <Button>Explore Collection</Button>
-          <Button variant="outline">Join Discord</Button>
+        <div ref={buttonRef} className="opacity-0 will-change-transform">
+          <Button text="Explore Our Work" />
         </div>
       </div>
 
-      <div className="absolute bottom-10 right-10 z-10 hidden md:block">
-        <img
-          ref={nftImageRef}
-          src="/hero-ape.webp" // Placeholder image
-          alt="Nebula Ape NFT"
-          className="w-80 h-auto rounded-xl shadow-2xl scale-90 opacity-0 will-change-transform"
-        />
-      </div>
+      {/* Abstract geometric elements for brutalist-chic aesthetic and depth */}
+      <div className="absolute top-20 right-20 w-48 h-48 bg-neon-green/10 transform rotate-45 skew-x-12 opacity-30 pointer-events-none mix-blend-screen z-0 will-change-transform"></div>
+      <div className="absolute bottom-10 left-10 w-96 h-2 bg-neon-pink/15 transform -rotate-12 opacity-40 pointer-events-none mix-blend-screen z-0 will-change-transform"></div>
+      <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-gradient-to-tr from-accent-purple/20 to-accent-cyan/10 rounded-br-full blur-3xl opacity-20 pointer-events-none mix-blend-overlay z-0 will-change-transform"></div>
     </section>
   );
 };

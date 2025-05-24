@@ -2,72 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles for the entire project */
-html {
-  scroll-behavior: smooth; /* Smooth scrolling for anchor links */
-  overflow-x: hidden; /* Prevent horizontal scroll bar */
-  cursor: none; /* Hide default cursor */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    @apply antialiased;
+  }
+  body {
+    @apply bg-deep-charcoal text-off-white font-dm-sans overflow-x-hidden;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-space-grotesk font-bold;
+  }
+  /* Custom Scrollbar for better aesthetics */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #4A4A4A;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6a6a6a;
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #0A0A0A; /* Deep dark background */
-  color: #F0F0F0; /* Light text for contrast */
-  font-family: 'DM Sans', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  overflow-x: hidden; /* Ensure no horizontal overflow from children */
-}
-
-/* Custom utility classes or base styles not covered by Tailwind */
-.max-width-wrapper {
-  @apply mx-auto px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-24;
-}
-
-/* Custom Scrollbar for modern look */
-::-webkit-scrollbar {
-  width: 8px; /* For vertical scrollbar */
-  height: 8px; /* For horizontal scrollbar */
-}
-
-::-webkit-scrollbar-track {
-  background: #1A1A1A; /* Darker track */
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #4A4A4A; /* Greyish thumb */
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #8B5CF6; /* Accent color on hover */
-}
-
-/* General GSAP optimization for performance */
-.gsap-transform {
-  will-change: transform, opacity;
-}
-
-/* Custom class for sections to snap or align */
-.full-height-section {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative; /* Needed for absolute children or parallax */
-}
-
-/* Specific styling for brutalist-chic headers */
-.brutalist-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  @apply font-bold uppercase tracking-tighter;
-}
-
-/* Custom cursor hover effects */
-.cursor-pointer, button, a, .interactive-element {
-  cursor: none; /* Hide default cursor for interactive elements too */
+/* Custom Utilities (can be moved to tailwind.config.js extend.theme.colors if more complex) */
+@layer utilities {
+  .text-gradient-purple-cyan {
+    background-image: linear-gradient(45deg, var(--color-accent-purple), var(--color-accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }

@@ -1,74 +1,129 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Flip } from 'gsap/Flip';
-import { CustomEase } from 'gsap/CustomEase';
-
-import Preloader from '@/components/animations/Preloader';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import CustomCursor from '@/components/ui/CustomCursor';
-import HeroSection from '@/components/sections/HeroSection';
-import AboutSection from '@/components/sections/AboutSection';
-import CollectionSection from '@/components/sections/CollectionSection';
-import RoadmapSection from '@/components/sections/RoadmapSection';
-import CallToActionSection from '@/components/sections/CallToActionSection';
-
-gsap.registerPlugin(ScrollTrigger, Flip, CustomEase);
-
-// Define a custom ease for smoother animations
-CustomEase.create("customEase", "M0,0 C0.7,0 0.3,1 1,1"); // Smooth, slightly overshooting ease
+import React, { useRef, useEffect } from 'react';
+import { useGsapAnimations } from './hooks/useGsapAnimations';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
+import CustomCursor from './components/ui/CustomCursor';
+import Preloader from './components/ui/Preloader';
+import HeroSection from './components/sections/HeroSection';
+import HorizontalScrollSection from './components/sections/HorizontalScrollSection';
+import ToDoSection from './components/sections/ToDoSection'; // <-- NOUVEAU
 
 const App: React.FC = () => {
-  const [loading, setLoading] = useState(true);
+  const { cursorRef, followerRef } = useGsapAnimations();
   const mainContentRef = useRef<HTMLDivElement>(null);
 
+  // Example of global page transitions/animations if needed,
+  // typically managed by ScrollTrigger for sections
   useEffect(() => {
-    const onPageLoad = () => {
-      setLoading(false);
-      gsap.to(document.body, { opacity: 1, duration: 0.5 }); // Fade in body after preloader
-    };
-
-    if (document.readyState === 'complete') {
-      onPageLoad();
-    } else {
-      window.addEventListener('load', onPageLoad);
-      return () => window.removeEventListener('load', onPageLoad);
-    }
+    // You might have a master timeline here to orchestrate section entries
+    // or rely on individual section ScrollTriggers.
   }, []);
 
-  useEffect(() => {
-    if (!loading && mainContentRef.current) {
-      // General GSAP setup for performance and scroll integration
-      gsap.set(mainContentRef.current, { visibility: 'visible' });
-
-      // Optional: Smooth scroll polyfill for older browsers or custom scroll behavior
-      // ScrollTrigger.defaults({ smooth: true }); // Use if you want a custom smooth scroll effect
-
-      // Cleanup GSAP instances on unmount
-      return () => {
-        ScrollTrigger.getAll().forEach(st => st.kill());
-      };
-    }
-  }, [loading]);
-
   return (
-    <div className="relative overflow-hidden min-h-screen bg-dark-deep text-light-contrast">
-      <CustomCursor />
-      {loading && <Preloader />}
-      <div ref={mainContentRef} className={loading ? 'opacity-0 visibility-hidden' : 'opacity-100 visibility-visible'}>
-        <Header />
-        <main>
-          <HeroSection />
-          <AboutSection />
-          <CollectionSection />
-          <RoadmapSection />
-          <CallToActionSection />
-        </main>
-        <Footer />
-      </div>
+    <div className="relative overflow-hidden">
+      <Preloader />
+      <CustomCursor cursorRef={cursorRef} followerRef={followerRef} />
+      <Header />
+      <main ref={mainContentRef} className="relative z-10">
+        <HeroSection />
+        <HorizontalScrollSection />
+        <ToDoSection /> {/* <-- Intégration de la section ToDo */}
+        {/* Potentiellement d'autres sections ici (About, Services, Contact, etc.) */}
+      </main>
+      <Footer />
+      {/* Placeholder for WebGL Canvas. Actual WebGL implementation would be a separate library/component. */}
+      {/* <canvas id="webgl-bg" className="fixed inset-0 z-0"></canvas> */}
     </div>
   );
 };
 
 export default App;
+</Extacted_code>
+
+Nom du fichier: src/components/layout/Header.tsx
+<Extracted_code>
+import React, { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+
+const Header: React.FC = () => {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const navItemRefs = useRef<HTMLLIElement[]>([]);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.fromTo(headerRef.current,
+        { y: -100, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 1.5 } // Delay after preloader
+      );
+
+      gsap.fromTo(navItemRefs.current,
+        { opacity: 0, x: 20 },
+        { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 1.8 }
+      );
+    }
+  }, []);
+
+  const handleNavHover = (e: React.MouseEvent<HTMLLIElement>, enter: boolean) => {
+    if (enter) {
+      gsap.to(e.currentTarget.querySelector('a'), { color: '#4EE7E9', duration: 0.3, ease: 'power2.out' });
+      gsap.to(e.currentTarget.querySelector('.underline-effect'), { width: '100%', duration: 0.4, ease: 'power2.out' });
+    } else {
+      gsap.to(e.currentTarget.querySelector('a'), { color: '#F5F5F5', duration: 0.3, ease: 'power2.out' });
+      gsap.to(e.currentTarget.querySelector('.underline-effect'), { width: '0%', duration: 0.4, ease: 'power2.out' });
+    }
+  };
+
+  return (
+    <header ref={headerRef} className="fixed top-0 left-0 w-full z-50 p-6 md:p-8 flex justify-between items-center bg-gradient-to-b from-deep-charcoal/80 to-transparent">
+      <div className="text-off-white text-d-xl font-space-grotesk font-extrabold tracking-tight cursor-pointer interactive-element" data-cursor-text="Home">
+        ELITE.
+      </div>
+      <nav>
+        <ul className="flex space-x-6 md:space-x-12">
+          <li
+            ref={el => { if (el) navItemRefs.current[0] = el; }}
+            className="relative cursor-pointer interactive-element group"
+            onMouseEnter={(e) => handleNavHover(e, true)}
+            onMouseLeave={(e) => handleNavHover(e, false)}
+            data-cursor-text="Projects"
+          >
+            <a href="#projects" className="text-off-white text-d-base md:text-d-lg font-dm-sans font-medium hover:text-accent-cyan transition-colors">Projects</a>
+            <span className="underline-effect absolute bottom-0 left-0 h-0.5 bg-accent-cyan w-0 transition-all duration-300 ease-expo-out"></span>
+          </li>
+          <li
+            ref={el => { if (el) navItemRefs.current[1] = el; }}
+            className="relative cursor-pointer interactive-element group"
+            onMouseEnter={(e) => handleNavHover(e, true)}
+            onMouseLeave={(e) => handleNavHover(e, false)}
+            data-cursor-text="Studio"
+          >
+            <a href="#studio" className="text-off-white text-d-base md:text-d-lg font-dm-sans font-medium hover:text-accent-cyan transition-colors">Studio</a>
+            <span className="underline-effect absolute bottom-0 left-0 h-0.5 bg-accent-cyan w-0 transition-all duration-300 ease-expo-out"></span>
+          </li>
+          <li
+            ref={el => { if (el) navItemRefs.current[2] = el; }}
+            className="relative cursor-pointer interactive-element group"
+            onMouseEnter={(e) => handleNavHover(e, true)}
+            onMouseLeave={(e) => handleNavHover(e, false)}
+            data-cursor-text="Tasks"
+          >
+            <a href="#todo" className="text-off-white text-d-base md:text-d-lg font-dm-sans font-medium hover:text-accent-cyan transition-colors">Tasks</a>
+            <span className="underline-effect absolute bottom-0 left-0 h-0.5 bg-accent-cyan w-0 transition-all duration-300 ease-expo-out"></span>
+          </li>
+          <li
+            ref={el => { if (el) navItemRefs.current[3] = el; }}
+            className="relative cursor-pointer interactive-element group"
+            onMouseEnter={(e) => handleNavHover(e, true)}
+            onMouseLeave={(e) => handleNavHover(e, false)}
+            data-cursor-text="Contact"
+          >
+            <a href="#contact" className="text-off-white text-d-base md:text-d-lg font-dm-sans font-medium hover:text-accent-cyan transition-colors">Contact</a>
+            <span className="underline-effect absolute bottom-0 left-0 h-0.5 bg-accent-cyan w-0 transition-all duration-300 ease-expo-out"></span>
+          </li>
+        </ul>
+      </nav>
+    </header>
+  );
+};
+
+export default Header;
